@@ -6,7 +6,7 @@
    Дать @bachisheo и @perfectrum доступ к этому форку.
 
 ```
-git remote add upstream git@github.com:bachish/mse-fl.git
+git remote add upstream git@gitlab.com:bachisheo/mse-fl.git
 ```
 
 2. Домашки выкладываются в ветки вида `task-N-title`
