@@ -3,7 +3,7 @@
 ## Порядок сдачи заданий
 
 1. Сделать форк данного репозитория и добавить основной репозиторий к своему как `upstream`.
-   Дать @bachisheo и @perfectrum доступ к этому форку.
+   Дать @bachisheo, @perfectrum и @Anely доступ к этому форку.
 
 ```
 git remote add upstream git@gitlab.com:bachisheo/mse-fl.git
