@@ -1,0 +1,29 @@
+stages:
+  - quality
+  - test
+
+cargo-fmt:
+  stage: quality
+  image: rust:latest
+  script:
+    - rustup component add rustfmt
+    - cargo fmt -- --check
+
+cargo-clippy:
+  stage: quality
+  image: rust:latest
+  script:
+    - rustup component add clippy
+    - cargo clippy --all-targets --all-features -- -D warnings
+
+cargo-check:
+  stage: quality
+  image: rust:latest
+  script:
+    - cargo check
+
+cargo-test:
+  stage: test
+  image: rust:latest
+  script:
+    - cargo test
