@@ -56,62 +56,15 @@ struct Cell { identity: Float, energy: Float }
 
 ---
 
-## 4. Грамматика (EBNF)
+## 4. Жизненный цикл и Pipeline
 
-```ebnf
-Program       ::= (Declaration | GridDecl | StepDecl)*
-Declaration   ::= StructDecl | ConstDecl | TableDecl | ParamDecl | StateDecl | FnDecl | NodeDecl
-
-(* Ресурсы *)
-StateDecl     ::= "state" Ident ":" Type "keep" "(" IntLiteral ")" "=" Expression ("@" FlatArray)? "#" Bound ";"
-TableDecl     ::= "table" Ident "#" Bound ":" Type DimList "=" ArrayLiteral ";"
-ParamDecl     ::= "param" Ident "#" Bound ":" Type DimList "=" ArrayLiteral ";"
-
-(* Логика *)
-NodeDecl      ::= "node" Ident "(" Params? ")" "{" NodeStatement* "}"
-NodeStatement ::= LetStmt | NextStmt
-NextStmt      ::= "next" AccessTarget ("=" | "+=" | "-=" | "*=" | "/=") Expression ";"
-
-(* Выражения *)
-Expression    ::= Ternary
-Ternary       ::= LogicOr ("?" Expression ":" Expression)?
-Primary       ::= Atom (Selector)*
-Selector      ::= Field | History | Space | Index | Call | Method | Fold
-
-History       ::= "@" ("now" | "prev" | "0" | "-" IntLiteral)
-Space         ::= "#" "[" Expression ("," Expression)* "]"
-Fold          ::= ".fold" "(" Expression "," Ident ")"
-```
-
----
-
-## 5. Приоритет операторов
-
-| Priority | Operator | Associativity | Description |
-| :--- | :--- | :--- | :--- |
-| 1 | `()` `[]` `.` `#` `@` | Left | Группировка, Индексация, Пространство/Время, Fold |
-| 2 | `!` `-` (unary) | Right | Унарные операторы |
-| 3 | `as` | Left | Приведение типов |
-| 4 | `*` `/` | Left | Мультипликативные |
-| 5 | `+` `-` | Left | Аддитивные |
-| 6 | `<` `>` `<=` `>=` | Left | Сравнение |
-| 7 | `==` `!=` | Left | Равенство |
-| 8 | `&&` | Left | Логическое И |
-| 9 | `||` | Left | Логическое ИЛИ |
-| 10 | `? :` | Right | Тернарный оператор |
-| 11 | `=` `+=` `-=` `*=` `/=`| Right | Присваивание (только в `next` / `let`) |
-
----
-
-## 6. Жизненный цикл и Pipeline
-
-### 6.1 Grid (Инстанцирование)
+### 4.1 Grid (Инстанцирование)
 Определяет топологию и выделяет память под ноды.
 ```rust
 grid World = NCA_Node[1024, 1024](0.5);
 ```
 
-### 6.2 Step (Управление тактом)
+### 4.2 Step (Управление тактом)
 Блок `step` — это императивный дирижер симуляции.
 1.  **`run GridName;`** — запускает параллельное вычисление всех нод в сетке.
 2.  **Double Buffering:** Все `next` записи внутри `node` попадают в "теневой" слой.
@@ -120,7 +73,7 @@ grid World = NCA_Node[1024, 1024](0.5);
 
 ---
 
-## 7. Пример: Neural Cellular Automata (NCA)
+## 5. Пример: Neural Cellular Automata (NCA)
 
 ```rust
 struct Cell {
@@ -161,7 +114,7 @@ step {
 }
 ```
 
-### Ключевые изменения версии 0.2.2:
+### Ключевые изменения версии 0.3.0:
 *   **Явные границы:** Символ `#` теперь обязателен для любого обращения к памяти, имеющей "соседей".
 *   **Разделение `@`:** Символ используется и для инициализации истории в `state`, и для доступа к ней в выражениях.
 *   **Метод `.fold()`:** Введен синтаксис для редукции данных сетки в скалярные значения внутри `step`.
