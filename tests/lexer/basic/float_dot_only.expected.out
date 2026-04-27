@@ -1,0 +1,5 @@
+Let	"let"	1:1-1:4
+Ident	"weird"	1:5-1:10
+Assign	"="	1:11-1:12
+Dot	"."	1:13-1:14
+Semicolon	";"	1:14-1:15

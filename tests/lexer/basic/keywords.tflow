@@ -1,0 +1,4 @@
+struct Point { x: Int, y: Int }
+const MAX = 100;
+fn add(a: Int, b: Int) -> Int { return a + b; }
+state energy: Float keep(10) = 0.0 @ now # fixed(0);

@@ -23,6 +23,7 @@ serde_json = "1.0"
 [dev-dependencies]
 # Для удобных тестов и сравнения результатов в CI (опционально)
 pretty_assertions = "1.4"
+tempfile = "3.0"
 
 # Для тестов через систему снимков (опционально)
 insta = { version = "1.47", features = ["yaml"] }

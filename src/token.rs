@@ -1,4 +1,4 @@
-use logos::{Logos, Lexer};
+use logos::{Lexer, Logos};
 
 #[derive(Default, Debug, Clone, PartialEq)]
 pub enum TFlowLexerError {
@@ -8,35 +8,55 @@ pub enum TFlowLexerError {
 
 #[derive(Logos, Debug, PartialEq, Clone, Copy)]
 #[logos(error = TFlowLexerError)]
-#[logos(extras = ())] 
+#[logos(extras = ())]
 #[logos(skip r"[ \t\n\f]+")] // Пробельные символы
-#[logos(skip r"//.*")]       // Однострочные комментарии
+#[logos(skip(r"//.*", allow_greedy = true))] // Однострочные комментарии
 pub enum Token {
     // Ключевые слова
-    #[token("struct")] Struct,
-    #[token("const")]  Const,
-    #[token("table")]  Table,
-    #[token("param")]  Param,
-    #[token("state")]  State,
-    #[token("keep")]   Keep,
-    #[token("fn")]     Fn,
-    #[token("node")]   Node,
-    #[token("grid")]   Grid,
-    #[token("step")]   Step,
-    #[token("run")]    Run,
-    #[token("let")]    Let,
-    #[token("next")]   Next,
-    #[token("return")] Return,
-    #[token("as")]     As,
+    #[token("struct")]
+    Struct,
+    #[token("const")]
+    Const,
+    #[token("table")]
+    Table,
+    #[token("param")]
+    Param,
+    #[token("state")]
+    State,
+    #[token("keep")]
+    Keep,
+    #[token("fn")]
+    Fn,
+    #[token("node")]
+    Node,
+    #[token("grid")]
+    Grid,
+    #[token("step")]
+    Step,
+    #[token("run")]
+    Run,
+    #[token("let")]
+    Let,
+    #[token("next")]
+    Next,
+    #[token("return")]
+    Return,
+    #[token("as")]
+    As,
 
     // Логические константы и специальные идентификаторы
-    #[token("true")]   BoolTrue,
-    #[token("false")]  BoolFalse,
-    #[token("now")]    Now,
-    #[token("prev")]   Prev,
+    #[token("true")]
+    BoolTrue,
+    #[token("false")]
+    BoolFalse,
+    #[token("now")]
+    Now,
+    #[token("prev")]
+    Prev,
 
     // Системный контекст
-    #[token("self")]   SelfInfo,
+    #[token("self")]
+    SelfInfo,
 
     // Идентификаторы
     #[regex(r"[a-zA-Z_][a-zA-Z0-9_]*")]
@@ -53,43 +73,74 @@ pub enum Token {
     FloatLiteral(f64),
 
     // Операторы и Спецсимволы
-    #[token("+")] Plus,
-    #[token("-")] Minus,
-    #[token("*")] Star,
-    #[token("/")] Slash,
+    #[token("+")]
+    Plus,
+    #[token("-")]
+    Minus,
+    #[token("*")]
+    Star,
+    #[token("/")]
+    Slash,
 
-    #[token("=")] Assign,
-    #[token("+=")] AddAssign,
-    #[token("-=")] SubAssign,
-    #[token("*=")] MulAssign,
-    #[token("/=")] DivAssign,
+    #[token("=")]
+    Assign,
+    #[token("+=")]
+    AddAssign,
+    #[token("-=")]
+    SubAssign,
+    #[token("*=")]
+    MulAssign,
+    #[token("/=")]
+    DivAssign,
 
-    #[token("==")] Eq,
-    #[token("!=")] Neq,
-    #[token("<")]  Lt,
-    #[token(">")]  Gt,
-    #[token("<=")] Le,
-    #[token(">=")] Ge,
+    #[token("==")]
+    Eq,
+    #[token("!=")]
+    Neq,
+    #[token("<")]
+    Lt,
+    #[token(">")]
+    Gt,
+    #[token("<=")]
+    Le,
+    #[token(">=")]
+    Ge,
 
-    #[token("&&")] And,
-    #[token("||")] Or,
-    #[token("!")]  Not,
+    #[token("&&")]
+    And,
+    #[token("||")]
+    Or,
+    #[token("!")]
+    Not,
 
-    #[token("?")]  Question,
-    #[token(":")]  Colon,
-    #[token(";")]  Semicolon,
-    #[token(",")]  Comma,
-    #[token(".")]  Dot,
-    #[token("@")]  At,
-    #[token("#")]  Hash,
+    #[token("?")]
+    Question,
+    #[token(":")]
+    Colon,
+    #[token(";")]
+    Semicolon,
+    #[token(",")]
+    Comma,
+    #[token(".")]
+    Dot,
+    #[token("@")]
+    At,
+    #[token("#")]
+    Hash,
 
     // Скобки
-    #[token("(")]  ParenOpen,
-    #[token(")")]  ParenClose,
-    #[token("[")]  BracketOpen,
-    #[token("]")]  BracketClose,
-    #[token("{")]  BraceOpen,
-    #[token("}")]  BraceClose,
+    #[token("(")]
+    ParenOpen,
+    #[token(")")]
+    ParenClose,
+    #[token("[")]
+    BracketOpen,
+    #[token("]")]
+    BracketClose,
+    #[token("{")]
+    BraceOpen,
+    #[token("}")]
+    BraceClose,
 }
 
 // Функции-хелперы для парсинга чисел прямо во время лексического анализа
