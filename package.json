@@ -40,6 +40,17 @@
         "scopeName": "source.tflow",
         "path": "./syntaxes/tflow.tmLanguage.json"
       }
+    ],
+    "configuration": [
+      {
+        "title": "T-Flow",
+        "properties": {
+          "tflow.binaryPath": {
+              "type": "string",
+              "default": "E:/LABS/maga/sem2/Formal/mse-fl/target/release/T-flow.exe"
+          }
+        }
+      }
     ]
   }
 }

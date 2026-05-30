@@ -1,4 +1,5 @@
 const vscode = require("vscode");
+const { createDiagnosticsProvider } = require("./diagnostics");
 
 const hoverTexts = {
     struct: "Structure with fields.",
@@ -63,6 +64,11 @@ function activate(context) {
             return new vscode.Hover(markdown, range);
         }
     });
+    const diagnosticCollection = vscode.languages.createDiagnosticCollection("tflow");
+    context.subscriptions.push(diagnosticCollection);
+    context.subscriptions.push(
+        createDiagnosticsProvider(diagnosticCollection, context.extensionPath)
+    );
 
     const formatterProvider = vscode.languages.registerDocumentFormattingEditProvider("tflow", {
         provideDocumentFormattingEdits(document) {

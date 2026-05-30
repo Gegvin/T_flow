@@ -40,6 +40,23 @@
 * скобок и разделителей
 * идентификаторов
 
+#### Syntax diagnostics
+
+Расширение запускает анализатор при открытии и изменении `.tflow` файла
+и отображает ошибки прямо в редакторе и панели **Problems** (`Ctrl+Shift+M`).
+
+Обнаруживаемые ошибки:
+- лексические: неожиданный символ
+- синтаксические: пропущенные `;`, `}`, `(`, некорректные конструкции внутри `node` и `step`
+
+Примеры сообщений:
+- expected ';' after let statement
+- expected '}' to close function body
+- unexpected 'if' in node body: only 'let' and 'next' are allowed
+
+Путь к бинарнику нужно задать вручную в настройках VS Code:
+tflow.binaryPath = /path/to/tflow
+
 #### Snippets
 
 Добавлены snippets для основных конструкций T-Flow.
