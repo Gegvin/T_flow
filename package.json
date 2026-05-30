@@ -1,0 +1,45 @@
+{
+  "name": "tflow-vscode",
+  "displayName": "T-Flow Language Support",
+  "description": "VS Code support for the T-Flow DSL",
+  "version": "0.0.1",
+  "publisher": "tflow-team",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "main": "./extension.js",
+  "activationEvents": [
+    "onLanguage:tflow"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "tflow",
+        "aliases": [
+          "T-Flow",
+          "tflow"
+        ],
+        "extensions": [
+          ".tflow"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "tflow",
+        "path": "./snippets/tflow.code-snippets"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "tflow",
+        "scopeName": "source.tflow",
+        "path": "./syntaxes/tflow.tmLanguage.json"
+      }
+    ]
+  }
+}
