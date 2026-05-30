@@ -1,0 +1,14 @@
+Let	"let"	1:1-1:4
+Ident	"pos"	1:5-1:8
+Assign	"="	1:9-1:10
+SelfInfo	"self"	1:11-1:15
+Dot	"."	1:15-1:16
+Ident	"x"	1:16-1:17
+Semicolon	";"	1:17-1:18
+Let	"let"	2:1-2:4
+Ident	"linear"	2:5-2:11
+Assign	"="	2:12-2:13
+SelfInfo	"self"	2:14-2:18
+Dot	"."	2:18-2:19
+Ident	"index"	2:19-2:24
+Semicolon	";"	2:24-2:25
