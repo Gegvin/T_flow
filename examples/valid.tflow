@@ -1,0 +1,27 @@
+// Example T-Flow program
+
+struct Cell {
+    energy: Float,
+    alive: Bool
+}
+
+const start_energy = 10;
+param gravity #wrap: Float[2] = [0.0, -9.8];
+
+state cells: Float keep(2) = 0 @ [0, 0, 0, 0] #wrap;
+
+fn add(a: Float, b: Float) -> Float {
+    let result = a + b;
+    return result;
+}
+
+node update(cell: Cell) {
+    let next_energy = cell.energy + 1.0;
+    next cells[0] = next_energy;
+}
+
+grid world = Cell[10, 10]();
+
+step {
+    run update;
+}
