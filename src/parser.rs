@@ -16,7 +16,11 @@ pub struct Parser<'a> {
 
 impl<'a> Parser<'a> {
     pub fn new(tokens: &'a [LocatedToken<Token>]) -> Self {
-        Self { tokens, pos: 0, errors: Vec::new() }
+        Self {
+            tokens,
+            pos: 0,
+            errors: Vec::new(),
+        }
     }
 
     pub fn parse(mut self) -> Vec<ParseError> {
@@ -42,7 +46,9 @@ impl<'a> Parser<'a> {
 
     fn advance(&mut self) -> Option<&LocatedToken<Token>> {
         let tok = self.tokens.get(self.pos);
-        if tok.is_some() { self.pos += 1; }
+        if tok.is_some() {
+            self.pos += 1;
+        }
         tok
     }
 
@@ -51,7 +57,12 @@ impl<'a> Parser<'a> {
     }
 
     fn eat(&mut self, kind: &Token) -> bool {
-        if self.check(kind) { self.advance(); true } else { false }
+        if self.check(kind) {
+            self.advance();
+            true
+        } else {
+            false
+        }
     }
 
     fn expect(&mut self, kind: &Token, msg: &str) -> bool {
@@ -77,15 +88,19 @@ impl<'a> Parser<'a> {
             .get(self.pos)
             .map(|t| (t.location.start.line, t.location.start.column))
             .or_else(|| {
-                self.tokens.last().map(|t| (t.location.end.line, t.location.end.column))
+                self.tokens
+                    .last()
+                    .map(|t| (t.location.end.line, t.location.end.column))
             })
             .unwrap_or((1, 1))
     }
 
     fn synchronize(&mut self, stops: &[Token]) {
         while !self.at_end() {
-            if let Some(t) = self.peek() {
-                if stops.contains(t) { return; }
+            if let Some(t) = self.peek()
+                && stops.contains(t)
+            {
+                return;
             }
             self.advance();
         }
@@ -96,14 +111,14 @@ impl<'a> Parser<'a> {
     fn parse_declaration(&mut self) {
         match self.peek() {
             Some(Token::Struct) => self.parse_struct(),
-            Some(Token::Const)  => self.parse_const(),
-            Some(Token::Table)  => self.parse_table_or_param(Token::Table),
-            Some(Token::Param)  => self.parse_table_or_param(Token::Param),
-            Some(Token::State)  => self.parse_state(),
-            Some(Token::Fn)     => self.parse_fn(),
-            Some(Token::Node)   => self.parse_node(),
-            Some(Token::Grid)   => self.parse_grid(),
-            Some(Token::Step)   => self.parse_step(),
+            Some(Token::Const) => self.parse_const(),
+            Some(Token::Table) => self.parse_table_or_param(Token::Table),
+            Some(Token::Param) => self.parse_table_or_param(Token::Param),
+            Some(Token::State) => self.parse_state(),
+            Some(Token::Fn) => self.parse_fn(),
+            Some(Token::Node) => self.parse_node(),
+            Some(Token::Grid) => self.parse_grid(),
+            Some(Token::Step) => self.parse_step(),
             _ => {
                 self.error(&format!(
                     "unexpected token '{}': expected declaration (struct, const, table, param, state, fn, node, grid, step)",
@@ -111,8 +126,15 @@ impl<'a> Parser<'a> {
                 ));
                 self.advance();
                 self.synchronize(&[
-                    Token::Struct, Token::Const, Token::Table, Token::Param,
-                    Token::State, Token::Fn, Token::Node, Token::Grid, Token::Step,
+                    Token::Struct,
+                    Token::Const,
+                    Token::Table,
+                    Token::Param,
+                    Token::State,
+                    Token::Fn,
+                    Token::Node,
+                    Token::Grid,
+                    Token::Step,
                 ]);
             }
         }
@@ -122,12 +144,22 @@ impl<'a> Parser<'a> {
 
     fn parse_struct(&mut self) {
         self.advance();
-        if !self.expect_ident("expected struct name after 'struct'") { return; }
-        if !self.expect(&Token::BraceOpen, "expected '{' after struct name") { return; }
+        if !self.expect_ident("expected struct name after 'struct'") {
+            return;
+        }
+        if !self.expect(&Token::BraceOpen, "expected '{' after struct name") {
+            return;
+        }
         while !self.check(&Token::BraceClose) && !self.at_end() {
-            if !self.expect_ident("expected field name") { break; }
-            if !self.expect(&Token::Colon, "expected ':' after field name") { break; }
-            if !self.parse_type() { break; }
+            if !self.expect_ident("expected field name") {
+                break;
+            }
+            if !self.expect(&Token::Colon, "expected ':' after field name") {
+                break;
+            }
+            if !self.parse_type() {
+                break;
+            }
             self.eat(&Token::Comma);
         }
         self.expect(&Token::BraceClose, "expected '}' to close struct");
@@ -137,8 +169,12 @@ impl<'a> Parser<'a> {
 
     fn parse_const(&mut self) {
         self.advance();
-        if !self.expect_ident("expected constant name after 'const'") { return; }
-        if !self.expect(&Token::Assign, "expected '=' after constant name") { return; }
+        if !self.expect_ident("expected constant name after 'const'") {
+            return;
+        }
+        if !self.expect(&Token::Assign, "expected '=' after constant name") {
+            return;
+        }
         self.parse_literal_or_error("expected literal value in const declaration");
         self.expect(&Token::Semicolon, "expected ';' after const declaration");
     }
@@ -147,12 +183,26 @@ impl<'a> Parser<'a> {
 
     fn parse_table_or_param(&mut self, keyword: Token) {
         self.advance();
-        let kw = if keyword == Token::Table { "table" } else { "param" };
-        if !self.expect_ident(&format!("expected name after '{kw}'")) { return; }
-        if !self.expect(&Token::Hash, &format!("expected '#' after {kw} name")) { return; }
-        if !self.parse_bound() { return; }
-        if !self.expect(&Token::Colon, "expected ':' before type") { return; }
-        if !self.parse_type() { return; }
+        let kw = if keyword == Token::Table {
+            "table"
+        } else {
+            "param"
+        };
+        if !self.expect_ident(&format!("expected name after '{kw}'")) {
+            return;
+        }
+        if !self.expect(&Token::Hash, &format!("expected '#' after {kw} name")) {
+            return;
+        }
+        if !self.parse_bound() {
+            return;
+        }
+        if !self.expect(&Token::Colon, "expected ':' before type") {
+            return;
+        }
+        if !self.parse_type() {
+            return;
+        }
         while self.check(&Token::BracketOpen) {
             self.advance();
             if matches!(self.peek(), Some(Token::IntLiteral(_))) {
@@ -162,35 +212,58 @@ impl<'a> Parser<'a> {
             }
             self.expect(&Token::BracketClose, "expected ']' after dimension size");
         }
-        if !self.expect(&Token::Assign, "expected '=' before array literal") { return; }
+        if !self.expect(&Token::Assign, "expected '=' before array literal") {
+            return;
+        }
         self.parse_array_literal();
-        self.expect(&Token::Semicolon, &format!("expected ';' after {kw} declaration"));
+        self.expect(
+            &Token::Semicolon,
+            &format!("expected ';' after {kw} declaration"),
+        );
     }
 
     // ── state ────────────────────────────────────────────────────────────
 
     fn parse_state(&mut self) {
         self.advance();
-        if !self.expect_ident("expected state name") { return; }
-        if !self.expect(&Token::Colon, "expected ':' after state name") { return; }
-        if !self.parse_type() { return; }
-        if !self.expect(&Token::Keep, "expected 'keep' after type in state") { return; }
-        if !self.expect(&Token::ParenOpen, "expected '(' after 'keep'") { return; }
+        if !self.expect_ident("expected state name") {
+            return;
+        }
+        if !self.expect(&Token::Colon, "expected ':' after state name") {
+            return;
+        }
+        if !self.parse_type() {
+            return;
+        }
+        if !self.expect(&Token::Keep, "expected 'keep' after type in state") {
+            return;
+        }
+        if !self.expect(&Token::ParenOpen, "expected '(' after 'keep'") {
+            return;
+        }
         if matches!(self.peek(), Some(Token::IntLiteral(_))) {
             self.advance();
         } else {
             self.error("expected integer history depth in keep(...)");
         }
-        if !self.expect(&Token::ParenClose, "expected ')' after history depth") { return; }
-        if !self.expect(&Token::Assign, "expected '=' after keep(...)") { return; }
+        if !self.expect(&Token::ParenClose, "expected ')' after history depth") {
+            return;
+        }
+        if !self.expect(&Token::Assign, "expected '=' after keep(...)") {
+            return;
+        }
         if self.check(&Token::BracketOpen) {
             self.parse_array_literal();
         } else {
             self.parse_literal_or_error("expected literal or array as initial value");
         }
-        if !self.expect(&Token::At, "expected '@' after initial values") { return; }
-        self.parse_array_literal(); 
-        if !self.expect(&Token::Hash, "expected '#' after flat array") { return; }
+        if !self.expect(&Token::At, "expected '@' after initial values") {
+            return;
+        }
+        self.parse_array_literal();
+        if !self.expect(&Token::Hash, "expected '#' after flat array") {
+            return;
+        }
         self.parse_bound();
         self.expect(&Token::Semicolon, "expected ';' after state declaration");
     }
@@ -199,14 +272,28 @@ impl<'a> Parser<'a> {
 
     fn parse_fn(&mut self) {
         self.advance();
-        if !self.expect_ident("expected function name after 'fn'") { return; }
-        if !self.expect(&Token::ParenOpen, "expected '(' after function name") { return; }
+        if !self.expect_ident("expected function name after 'fn'") {
+            return;
+        }
+        if !self.expect(&Token::ParenOpen, "expected '(' after function name") {
+            return;
+        }
         self.parse_params();
-        if !self.expect(&Token::ParenClose, "expected ')' after parameters") { return; }
-        if !self.expect(&Token::Minus, "expected '->' after ')'") { return; }
-        if !self.expect(&Token::Gt, "expected '>' in '->'") { return; }
-        if !self.parse_type() { return; }
-        if !self.expect(&Token::BraceOpen, "expected '{' to open function body") { return; }
+        if !self.expect(&Token::ParenClose, "expected ')' after parameters") {
+            return;
+        }
+        if !self.expect(&Token::Minus, "expected '->' after ')'") {
+            return;
+        }
+        if !self.expect(&Token::Gt, "expected '>' in '->'") {
+            return;
+        }
+        if !self.parse_type() {
+            return;
+        }
+        if !self.expect(&Token::BraceOpen, "expected '{' to open function body") {
+            return;
+        }
         while !self.check(&Token::BraceClose) && !self.at_end() {
             self.parse_statement();
         }
@@ -217,19 +304,29 @@ impl<'a> Parser<'a> {
 
     fn parse_node(&mut self) {
         self.advance();
-        if !self.expect_ident("expected node name after 'node'") { return; }
-        if !self.expect(&Token::ParenOpen, "expected '(' after node name") { return; }
+        if !self.expect_ident("expected node name after 'node'") {
+            return;
+        }
+        if !self.expect(&Token::ParenOpen, "expected '(' after node name") {
+            return;
+        }
         self.parse_params();
-        if !self.expect(&Token::ParenClose, "expected ')' after parameters") { return; }
-        if !self.expect(&Token::BraceOpen, "expected '{' to open node body") { return; }
+        if !self.expect(&Token::ParenClose, "expected ')' after parameters") {
+            return;
+        }
+        if !self.expect(&Token::BraceOpen, "expected '{' to open node body") {
+            return;
+        }
         while !self.check(&Token::BraceClose) && !self.at_end() {
             match self.peek() {
-                Some(Token::Let)  => self.parse_let(),
+                Some(Token::Let) => self.parse_let(),
                 Some(Token::Next) => self.parse_next(),
                 _ => {
                     self.error(&format!(
                         "unexpected '{}' in node body: only 'let' and 'next' are allowed",
-                        self.peek_tok().map(|t| t.lexeme.as_str()).unwrap_or("<EOF>")
+                        self.peek_tok()
+                            .map(|t| t.lexeme.as_str())
+                            .unwrap_or("<EOF>")
                     ));
                     self.advance();
                     self.synchronize(&[Token::Let, Token::Next, Token::BraceClose]);
@@ -243,20 +340,34 @@ impl<'a> Parser<'a> {
 
     fn parse_grid(&mut self) {
         self.advance();
-        if !self.expect_ident("expected grid name after 'grid'") { return; }
-        if !self.expect(&Token::Assign, "expected '=' after grid name") { return; }
-        if !self.expect_ident("expected node name in grid definition") { return; }
-        if !self.expect(&Token::BracketOpen, "expected '[' after node name in grid") { return; }
+        if !self.expect_ident("expected grid name after 'grid'") {
+            return;
+        }
+        if !self.expect(&Token::Assign, "expected '=' after grid name") {
+            return;
+        }
+        if !self.expect_ident("expected node name in grid definition") {
+            return;
+        }
+        if !self.expect(&Token::BracketOpen, "expected '[' after node name in grid") {
+            return;
+        }
         loop {
             if matches!(self.peek(), Some(Token::IntLiteral(_))) {
                 self.advance();
             } else {
                 self.error("expected integer dimension in grid");
             }
-            if !self.eat(&Token::Comma) { break; }
+            if !self.eat(&Token::Comma) {
+                break;
+            }
         }
-        if !self.expect(&Token::BracketClose, "expected ']' after grid dimensions") { return; }
-        if !self.expect(&Token::ParenOpen, "expected '(' for grid arguments") { return; }
+        if !self.expect(&Token::BracketClose, "expected ']' after grid dimensions") {
+            return;
+        }
+        if !self.expect(&Token::ParenOpen, "expected '(' for grid arguments") {
+            return;
+        }
         if !self.check(&Token::ParenClose) {
             self.parse_args();
         }
@@ -268,19 +379,25 @@ impl<'a> Parser<'a> {
 
     fn parse_step(&mut self) {
         self.advance();
-        if !self.expect(&Token::BraceOpen, "expected '{' after 'step'") { return; }
+        if !self.expect(&Token::BraceOpen, "expected '{' after 'step'") {
+            return;
+        }
         while !self.check(&Token::BraceClose) && !self.at_end() {
             match self.peek() {
-                Some(Token::Run)  => {
+                Some(Token::Run) => {
                     self.advance();
-                    if !self.expect_ident("expected grid name after 'run'") { break; }
+                    if !self.expect_ident("expected grid name after 'run'") {
+                        break;
+                    }
                     self.expect(&Token::Semicolon, "expected ';' after 'run'");
                 }
                 Some(Token::Next) => self.parse_next(),
                 _ => {
                     self.error(&format!(
                         "unexpected '{}' in step body: expected 'run' or 'next'",
-                        self.peek_tok().map(|t| t.lexeme.as_str()).unwrap_or("<EOF>")
+                        self.peek_tok()
+                            .map(|t| t.lexeme.as_str())
+                            .unwrap_or("<EOF>")
                     ));
                     self.advance();
                     self.synchronize(&[Token::Run, Token::Next, Token::BraceClose]);
@@ -294,9 +411,9 @@ impl<'a> Parser<'a> {
 
     fn parse_statement(&mut self) {
         match self.peek() {
-            Some(Token::Let)    => self.parse_let(),
+            Some(Token::Let) => self.parse_let(),
             Some(Token::Return) => self.parse_return(),
-            Some(Token::Next)   => self.parse_next(),
+            Some(Token::Next) => self.parse_next(),
             _ => {
                 self.parse_expression();
                 self.expect(&Token::Semicolon, "expected ';' after expression");
@@ -306,8 +423,12 @@ impl<'a> Parser<'a> {
 
     fn parse_let(&mut self) {
         self.advance();
-        if !self.expect_ident("expected variable name after 'let'") { return; }
-        if !self.expect(&Token::Assign, "expected '=' after variable name") { return; }
+        if !self.expect_ident("expected variable name after 'let'") {
+            return;
+        }
+        if !self.expect(&Token::Assign, "expected '=' after variable name") {
+            return;
+        }
         self.parse_expression();
         self.expect(&Token::Semicolon, "expected ';' after let statement");
     }
@@ -320,22 +441,28 @@ impl<'a> Parser<'a> {
 
     fn parse_next(&mut self) {
         self.advance();
-        if !self.expect_ident("expected target after 'next'") { return; }
+        if !self.expect_ident("expected target after 'next'") {
+            return;
+        }
         while matches!(self.peek(), Some(Token::BracketOpen) | Some(Token::Dot)) {
             if self.eat(&Token::BracketOpen) {
                 self.parse_expression();
                 self.expect(&Token::BracketClose, "expected ']' in index access");
             } else {
                 self.advance();
-                if !self.expect_ident("expected field name after '.'") { return; }
+                if !self.expect_ident("expected field name after '.'") {
+                    return;
+                }
             }
         }
         match self.peek() {
-            Some(Token::Assign)    |
-            Some(Token::AddAssign) |
-            Some(Token::SubAssign) |
-            Some(Token::MulAssign) |
-            Some(Token::DivAssign) => { self.advance(); }
+            Some(Token::Assign)
+            | Some(Token::AddAssign)
+            | Some(Token::SubAssign)
+            | Some(Token::MulAssign)
+            | Some(Token::DivAssign) => {
+                self.advance();
+            }
             _ => {
                 self.error("expected assignment operator ('=', '+=', '-=', '*=', '/=') in next");
                 return;
@@ -355,7 +482,9 @@ impl<'a> Parser<'a> {
         self.parse_or();
         if self.eat(&Token::Question) {
             self.parse_expression();
-            if !self.expect(&Token::Colon, "expected ':' in ternary expression") { return; }
+            if !self.expect(&Token::Colon, "expected ':' in ternary expression") {
+                return;
+            }
             self.parse_expression();
         }
     }
@@ -376,13 +505,10 @@ impl<'a> Parser<'a> {
 
     fn parse_comparison(&mut self) {
         self.parse_addition();
-        loop {
-            match self.peek() {
-                Some(Token::Eq) | Some(Token::Neq) |
-                Some(Token::Lt) | Some(Token::Gt)  |
-                Some(Token::Le) | Some(Token::Ge)  => { self.advance(); }
-                _ => break,
-            }
+        while let Some(Token::Eq) | Some(Token::Neq) | Some(Token::Lt) | Some(Token::Gt)
+        | Some(Token::Le) | Some(Token::Ge) = self.peek()
+        {
+            self.advance();
             self.parse_addition();
         }
     }
@@ -421,8 +547,10 @@ impl<'a> Parser<'a> {
 
     fn parse_primary(&mut self) {
         match self.peek() {
-            Some(Token::IntLiteral(_)) | Some(Token::FloatLiteral(_)) |
-            Some(Token::BoolTrue)      | Some(Token::BoolFalse)       => {
+            Some(Token::IntLiteral(_))
+            | Some(Token::FloatLiteral(_))
+            | Some(Token::BoolTrue)
+            | Some(Token::BoolFalse) => {
                 self.advance();
             }
             Some(Token::Ident) => {
@@ -434,12 +562,17 @@ impl<'a> Parser<'a> {
             Some(Token::ParenOpen) => {
                 self.advance();
                 self.parse_expression();
-                self.expect(&Token::ParenClose, "expected ')' to close grouped expression");
+                self.expect(
+                    &Token::ParenClose,
+                    "expected ')' to close grouped expression",
+                );
             }
             _ => {
                 self.error(&format!(
                     "expected expression, found '{}'",
-                    self.peek_tok().map(|t| t.lexeme.as_str()).unwrap_or("<EOF>")
+                    self.peek_tok()
+                        .map(|t| t.lexeme.as_str())
+                        .unwrap_or("<EOF>")
                 ));
                 return;
             }
@@ -453,7 +586,9 @@ impl<'a> Parser<'a> {
                     if self.check(&Token::Ident) {
                         self.advance();
                         if self.eat(&Token::ParenOpen) {
-                            if !self.check(&Token::ParenClose) { self.parse_args(); }
+                            if !self.check(&Token::ParenClose) {
+                                self.parse_args();
+                            }
                             self.expect(&Token::ParenClose, "expected ')' after method arguments");
                         }
                     } else {
@@ -464,8 +599,12 @@ impl<'a> Parser<'a> {
                 Some(Token::At) => {
                     self.advance();
                     match self.peek() {
-                        Some(Token::Now) | Some(Token::Prev) => { self.advance(); }
-                        Some(Token::IntLiteral(0)) => { self.advance(); }
+                        Some(Token::Now) | Some(Token::Prev) => {
+                            self.advance();
+                        }
+                        Some(Token::IntLiteral(0)) => {
+                            self.advance();
+                        }
                         Some(Token::Minus) => {
                             self.advance();
                             if matches!(self.peek(), Some(Token::IntLiteral(_))) {
@@ -482,14 +621,18 @@ impl<'a> Parser<'a> {
                 }
                 Some(Token::Hash) => {
                     self.advance();
-                    if !self.expect(&Token::BracketOpen, "expected '[' after '#'") { break; }
+                    if !self.expect(&Token::BracketOpen, "expected '[' after '#'") {
+                        break;
+                    }
                     loop {
                         if matches!(self.peek(), Some(Token::IntLiteral(_))) {
                             self.advance();
                         } else {
                             self.error("expected integer offset in spatial access");
                         }
-                        if !self.eat(&Token::Comma) { break; }
+                        if !self.eat(&Token::Comma) {
+                            break;
+                        }
                     }
                     self.expect(&Token::BracketClose, "expected ']' after spatial offsets");
                 }
@@ -500,7 +643,9 @@ impl<'a> Parser<'a> {
                 }
                 Some(Token::ParenOpen) => {
                     self.advance();
-                    if !self.check(&Token::ParenClose) { self.parse_args(); }
+                    if !self.check(&Token::ParenClose) {
+                        self.parse_args();
+                    }
                     self.expect(&Token::ParenClose, "expected ')' after call arguments");
                 }
                 _ => break,
@@ -512,11 +657,16 @@ impl<'a> Parser<'a> {
 
     fn parse_type(&mut self) -> bool {
         match self.peek() {
-            Some(Token::Ident) => { self.advance(); true }
+            Some(Token::Ident) => {
+                self.advance();
+                true
+            }
             _ => {
                 self.error(&format!(
                     "expected type, found '{}'",
-                    self.peek_tok().map(|t| t.lexeme.as_str()).unwrap_or("<EOF>")
+                    self.peek_tok()
+                        .map(|t| t.lexeme.as_str())
+                        .unwrap_or("<EOF>")
                 ));
                 false
             }
@@ -526,14 +676,23 @@ impl<'a> Parser<'a> {
     fn parse_bound(&mut self) -> bool {
         match self.peek() {
             Some(Token::Ident) => {
-                let lex = self.peek_tok().map(|t| t.lexeme.clone()).unwrap_or_default();
+                let lex = self
+                    .peek_tok()
+                    .map(|t| t.lexeme.clone())
+                    .unwrap_or_default();
                 self.advance();
                 if lex == "fixed" {
-                    if !self.expect(&Token::ParenOpen, "expected '(' after 'fixed'") { return false; }
+                    if !self.expect(&Token::ParenOpen, "expected '(' after 'fixed'") {
+                        return false;
+                    }
                     self.parse_literal_or_error("expected literal in fixed(...)");
-                    if !self.expect(&Token::ParenClose, "expected ')' after fixed value") { return false; }
+                    if !self.expect(&Token::ParenClose, "expected ')' after fixed value") {
+                        return false;
+                    }
                 } else if lex != "wrap" && lex != "clamp" {
-                    self.error(&format!("expected boundary mode ('fixed', 'wrap', 'clamp'), found '{lex}'"));
+                    self.error(&format!(
+                        "expected boundary mode ('fixed', 'wrap', 'clamp'), found '{lex}'"
+                    ));
                     return false;
                 }
                 true
@@ -546,33 +705,54 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_params(&mut self) {
-        if self.check(&Token::ParenClose) || self.at_end() { return; }
+        if self.check(&Token::ParenClose) || self.at_end() {
+            return;
+        }
         loop {
-            if !self.expect_ident("expected parameter name") { break; }
-            if !self.expect(&Token::Colon, "expected ':' after parameter name") { break; }
-            if !self.parse_type() { break; }
-            if !self.eat(&Token::Comma) { break; }
+            if !self.expect_ident("expected parameter name") {
+                break;
+            }
+            if !self.expect(&Token::Colon, "expected ':' after parameter name") {
+                break;
+            }
+            if !self.parse_type() {
+                break;
+            }
+            if !self.eat(&Token::Comma) {
+                break;
+            }
         }
     }
 
     fn parse_args(&mut self) {
         loop {
             self.parse_expression();
-            if !self.eat(&Token::Comma) { break; }
+            if !self.eat(&Token::Comma) {
+                break;
+            }
         }
     }
 
     fn parse_array_literal(&mut self) {
-        if !self.expect(&Token::BracketOpen, "expected '[' to start array literal") { return; }
-        if self.check(&Token::BracketClose) { self.advance(); return; }
+        if !self.expect(&Token::BracketOpen, "expected '[' to start array literal") {
+            return;
+        }
+        if self.check(&Token::BracketClose) {
+            self.advance();
+            return;
+        }
         loop {
             if self.check(&Token::BracketOpen) {
                 self.parse_array_literal();
             } else {
                 self.parse_literal_or_error("expected literal in array");
             }
-            if !self.eat(&Token::Comma) { break; }
-            if self.check(&Token::BracketClose) { break; }
+            if !self.eat(&Token::Comma) {
+                break;
+            }
+            if self.check(&Token::BracketClose) {
+                break;
+            }
         }
         self.expect(&Token::BracketClose, "expected ']' to close array literal");
     }
@@ -580,14 +760,23 @@ impl<'a> Parser<'a> {
     fn parse_literal_or_error(&mut self, msg: &str) {
         self.eat(&Token::Minus);
         match self.peek() {
-            Some(Token::IntLiteral(_)) | Some(Token::FloatLiteral(_)) |
-            Some(Token::BoolTrue)      | Some(Token::BoolFalse)       => { self.advance(); }
+            Some(Token::IntLiteral(_))
+            | Some(Token::FloatLiteral(_))
+            | Some(Token::BoolTrue)
+            | Some(Token::BoolFalse) => {
+                self.advance();
+            }
             _ => self.error(msg),
         }
     }
 
     fn expect_ident(&mut self, msg: &str) -> bool {
-        if self.check(&Token::Ident) { self.advance(); true }
-        else { self.error(msg); false }
+        if self.check(&Token::Ident) {
+            self.advance();
+            true
+        } else {
+            self.error(msg);
+            false
+        }
     }
 }

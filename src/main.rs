@@ -1,8 +1,8 @@
+use clap::Parser;
 use std::fs;
 use std::io::{self, Read};
 use std::path::PathBuf;
 use std::process::ExitCode;
-use clap::Parser;
 
 mod lexer_error;
 mod lexer_runner;
