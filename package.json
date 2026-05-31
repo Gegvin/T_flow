@@ -41,16 +41,15 @@
         "path": "./syntaxes/tflow.tmLanguage.json"
       }
     ],
-    "configuration": [
-      {
-        "title": "T-Flow",
-        "properties": {
-          "tflow.binaryPath": {
-              "type": "string",
-              "default": "E:/LABS/maga/sem2/Formal/mse-fl/target/release/T-flow.exe"
-          }
+    "configuration": {
+      "title": "T-Flow",
+      "properties": {
+        "tflow.binaryPath": {
+          "type": "string",
+          "default": "",
+          "description": "Optional path to the T-Flow analyzer binary. If empty, the extension tries to find it in target/release."
         }
       }
-    ]
+    }
   }
 }

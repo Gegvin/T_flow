@@ -25,3 +25,11 @@ grid world = Cell[10, 10]();
 step {
     run update;
 }
+
+fn test() -> Int {
+    let x = 0
+}
+
+step { 
+    run update
+}                             

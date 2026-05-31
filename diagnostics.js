@@ -7,24 +7,39 @@ const fs = require("fs");
 function getBinaryPath(extensionPath) {
     const config = vscode.workspace.getConfiguration("tflow");
     const configured = config.get("binaryPath");
+
     if (configured && configured.trim() !== "") {
         return configured.trim();
     }
 
     const bin = os.platform() === "win32" ? "T-flow.exe" : "tflow";
 
+    const candidates = [];
+
     const workspaceFolders = vscode.workspace.workspaceFolders;
-    if (workspaceFolders && workspaceFolders.length > 0) {
-        const candidate = path.join(
-            workspaceFolders[0].uri.fsPath,
-            "target", "release", bin
-        );
+    if (workspaceFolders) {
+        for (const folder of workspaceFolders) {
+            candidates.push(
+                path.join(folder.uri.fsPath, "target", "release", bin)
+            );
+        }
+    }
+
+    candidates.push(
+        path.join(extensionPath, "target", "release", bin)
+    );
+
+    candidates.push(
+        path.join(extensionPath, "bin", bin)
+    );
+
+    for (const candidate of candidates) {
         if (fs.existsSync(candidate)) {
             return candidate;
         }
     }
 
-    return path.join(extensionPath, "bin", bin);
+    return candidates[0];
 }
 
 function runChecker(binaryPath, source) {

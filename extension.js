@@ -64,10 +64,11 @@ function activate(context) {
             return new vscode.Hover(markdown, range);
         }
     });
-    const diagnosticCollection = vscode.languages.createDiagnosticCollection("tflow");
-    context.subscriptions.push(diagnosticCollection);
-    context.subscriptions.push(
-        createDiagnosticsProvider(diagnosticCollection, context.extensionPath)
+
+    const diagnosticsCollection = vscode.languages.createDiagnosticCollection("tflow");
+    const diagnosticsProvider = createDiagnosticsProvider(
+        diagnosticsCollection,
+        context.extensionPath
     );
 
     const formatterProvider = vscode.languages.registerDocumentFormattingEditProvider("tflow", {
@@ -116,11 +117,89 @@ function activate(context) {
         }
     });
 
+    const codeActionProvider = vscode.languages.registerCodeActionsProvider(
+        "tflow",
+        {
+            provideCodeActions(document, range, context) {
+                const actions = [];
+
+                for (const diagnostic of context.diagnostics) {
+                    if (!isMissingSemicolonDiagnostic(diagnostic)) {
+                        continue;
+                    }
+
+                    const insertPosition = findSemicolonInsertPosition(
+                        document,
+                        diagnostic.range.start.line
+                    );
+
+                    if (!insertPosition) {
+                        continue;
+                    }
+
+                    const action = new vscode.CodeAction(
+                        "Add missing semicolon",
+                        vscode.CodeActionKind.QuickFix
+                    );
+
+                    const edit = new vscode.WorkspaceEdit();
+                    edit.insert(document.uri, insertPosition, ";");
+
+                    action.edit = edit;
+                    action.diagnostics = [diagnostic];
+                    action.isPreferred = true;
+
+                    actions.push(action);
+                }
+
+                return actions;
+            }
+        },
+        {
+            providedCodeActionKinds: [vscode.CodeActionKind.QuickFix]
+        }
+    );
+
     context.subscriptions.push(
         hoverProvider,
         formatterProvider,
-        definitionProvider
+        definitionProvider,
+        codeActionProvider,
+        diagnosticsCollection,
+        diagnosticsProvider
     );
+}
+
+function isMissingSemicolonDiagnostic(diagnostic) {
+    return diagnostic.source === "tflow"
+        && diagnostic.message.includes("expected ';'");
+}
+
+function findSemicolonInsertPosition(document, diagnosticLine) {
+    let lineNumber = diagnosticLine;
+
+    while (lineNumber >= 0) {
+        const line = document.lineAt(lineNumber);
+        const text = line.text.trim();
+
+        if (text === "") {
+            lineNumber -= 1;
+            continue;
+        }
+
+        if (text === "}" || text === "{" || text.startsWith("//")) {
+            lineNumber -= 1;
+            continue;
+        }
+
+        if (text.endsWith(";")) {
+            return undefined;
+        }
+
+        return line.range.end;
+    }
+
+    return undefined;
 }
 
 function formatTFlow(text) {
