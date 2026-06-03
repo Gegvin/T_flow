@@ -1,0 +1,5 @@
+step {
+    run update;
+    let x = 10;
+    run another;
+}

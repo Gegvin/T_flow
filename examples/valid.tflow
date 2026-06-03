@@ -1,35 +1,95 @@
 // Example T-Flow program
 
+// 1. STRUCTURES
 struct Cell {
     energy: Float,
-    alive: Bool
+    alive: Bool,
+    pos_x: Float,
+    pos_y: Float
 }
 
-const start_energy = 10;
-param gravity #wrap: Float[2] = [0.0, -9.8];
+struct Particle {
+    mass: Float,
+    charge: Int
+}
 
-state cells: Float keep(2) = 0 @ [0, 0, 0, 0] #wrap;
+// 2. CONSTANTS
+const GRAVITY = 9.8;
+const MAX_ENERGY = 100;
 
-fn add(a: Float, b: Float) -> Float {
-    let result = a + b;
+// 3. TABLES
+table constants #wrap: Float = [3.14159, 2.71828];
+table coeff #fixed(1.0): Float = [0.5, 1.0];
+
+// 4. PARAMETERS
+param physics #fixed(0.01): Float = [0.0, -9.8];
+
+// 5. STATE with history
+state cells: Float keep(2) = 0 @ [0] #wrap;
+
+// 6. FUNCTIONS
+fn calculate_energy(mass: Float, velocity: Float) -> Float {
+    let kinetic = 0.5 * mass * velocity * velocity;
+    let potential = mass * GRAVITY;
+    let total = kinetic + potential;
+    return total;
+}
+
+fn is_valid(value: Int, min_val: Int, max_val: Int) -> Bool {
+    let result = value >= min_val && value <= max_val;
     return result;
 }
 
-node update(cell: Cell) {
-    let next_energy = cell.energy + 1.0;
-    next cells[0] = next_energy;
+fn get_max(a: Int, b: Int) -> Int {
+    let result = a > b ? a : b;
+    return result;
 }
 
+// 7. NODES
+node update_physics(cell: Cell) {
+    let new_energy = cell.energy - 0.1;
+    let is_alive = new_energy > 0 ? true : false;
+    let new_x = cell.pos_x;
+    let new_y = cell.pos_y;
+    
+    next cells[0] = new_energy;
+    next cells[1] = is_alive as Int;
+    next cells[2] = new_x;
+    next cells[3] = new_y;
+}
+
+node boundary_check(x: Float, y: Float) {
+    let inside = x >= 0 && y >= 0 ? 1 : 0;
+    let history_value = cells@prev;
+    let current_value = cells@now;
+    
+    next cells[4] = inside as Float;
+    next cells[5] = history_value;
+}
+
+// 8. GRID declarations
 grid world = Cell[10, 10]();
+grid particles = Particle[100]();
+
+// 9. STEP blocks
+step {
+    run update_physics;
+}
 
 step {
-    run update;
+    run boundary_check;
+    run update_physics;
 }
 
-fn test() -> Int {
-    let x = 0
+// 10. Type conversions
+fn type_conversion(int_val: Int, float_val: Float) -> Float {
+    let converted = int_val as Float;
+    let result = converted + float_val;
+    return result;
 }
 
-step { 
-    run update
-}                             
+// 11. Ternary operator
+fn ternary_example(cond: Bool) -> Int {
+    let value = cond ? 10 : 20;
+    return value;
+}

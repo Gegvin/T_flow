@@ -1,0 +1,4 @@
+fn missing_expression(a: Int) -> Int {
+    let result = a + ;
+    return result;
+}

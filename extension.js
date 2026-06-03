@@ -1,5 +1,6 @@
 const vscode = require("vscode");
 const { createDiagnosticsProvider } = require("./diagnostics");
+const { registerCompletionProvider } = require("./completion");
 
 const hoverTexts = {
     struct: "Structure with fields.",
@@ -159,6 +160,9 @@ function activate(context) {
             providedCodeActionKinds: [vscode.CodeActionKind.QuickFix]
         }
     );
+
+    // Регистрируем completion provider
+    registerCompletionProvider(context);
 
     context.subscriptions.push(
         hoverProvider,
