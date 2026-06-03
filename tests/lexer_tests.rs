@@ -14,7 +14,7 @@ fn get_binary_path() -> PathBuf {
         path.pop();
     }
 
-    path.push("T-flow");
+    path.push("tflow");
     path
 }
 
