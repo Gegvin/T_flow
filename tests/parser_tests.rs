@@ -12,9 +12,9 @@ fn get_binary_path() -> PathBuf {
     path.push("target");
     path.push("release");
     if cfg!(windows) {
-        path.push("T-flow.exe");
+        path.push("tflow.exe");
     } else {
-        path.push("T-flow");
+        path.push("tflow");
     }
     path
 }
