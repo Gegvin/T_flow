@@ -2,13 +2,19 @@ use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
 
+fn normalize_newlines(text: &str) -> String {
+    text.replace("\r\n", "\n")
+}
+
 fn get_binary_path() -> PathBuf {
     let mut path = std::env::current_exe().unwrap();
     path.pop();
+
     if path.ends_with("deps") {
         path.pop();
     }
-    path.push("T-flow");
+
+    path.push("tflow");
     path
 }
 
@@ -31,7 +37,12 @@ fn run_lexer_test(input_rel_path: &str, expected_rel_path: &str) {
     let expected = fs::read_to_string(&expected_path)
         .unwrap_or_else(|_| panic!("Failed to read expected file {:?}", expected_path));
 
-    assert_eq!(actual, expected, "Mismatch in test: {}", input_rel_path);
+    assert_eq!(
+        normalize_newlines(&actual),
+        normalize_newlines(&expected),
+        "Mismatch in test: {}",
+        input_rel_path
+    );
 
     fs::remove_file(&out_file).ok();
 }
@@ -57,7 +68,8 @@ fn run_lexer_error_test(input_rel_path: &str, expected_stderr_rel_path: &str) {
         .unwrap_or_else(|_| panic!("Failed to read expected stderr {:?}", expected_path));
 
     assert_eq!(
-        actual_stderr, expected_stderr,
+        normalize_newlines(&actual_stderr),
+        normalize_newlines(&expected_stderr),
         "Error mismatch in test: {}",
         input_rel_path
     );

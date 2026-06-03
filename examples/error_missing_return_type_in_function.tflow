@@ -1,0 +1,3 @@
+fn missing_return_type(a: Int) -> {
+    return a;
+}

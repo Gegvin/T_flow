@@ -9,7 +9,7 @@ pub enum TFlowLexerError {
 #[derive(Logos, Debug, PartialEq, Clone, Copy)]
 #[logos(error = TFlowLexerError)]
 #[logos(extras = ())]
-#[logos(skip r"[ \t\n\f]+")] // Пробельные символы
+#[logos(skip r"[ \t\r\n\f]+")] // Пробельные символы
 #[logos(skip(r"//.*", allow_greedy = true))] // Однострочные комментарии
 pub enum Token {
     // Ключевые слова

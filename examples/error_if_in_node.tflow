@@ -1,0 +1,6 @@
+node test() {
+    let x = 10;
+    if (x > 0) {
+        next y = 1;
+    }
+}

@@ -1,0 +1,3 @@
+node broken_node(cell: Cell) {
+    let value = cell.energy;
+    next target = value;

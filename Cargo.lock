@@ -3,21 +3,6 @@
 version = 4
 
 [[package]]
-name = "T-flow"
-version = "0.0.1"
-dependencies = [
- "ariadne",
- "clap",
- "insta",
- "line-col",
- "logos",
- "pretty_assertions",
- "serde",
- "serde_json",
- "tempfile",
-]
-
-[[package]]
 name = "aho-corasick"
 version = "1.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -521,6 +506,21 @@ dependencies = [
  "once_cell",
  "rustix",
  "windows-sys",
+]
+
+[[package]]
+name = "tflow"
+version = "0.0.1"
+dependencies = [
+ "ariadne",
+ "clap",
+ "insta",
+ "line-col",
+ "logos",
+ "pretty_assertions",
+ "serde",
+ "serde_json",
+ "tempfile",
 ]
 
 [[package]]
