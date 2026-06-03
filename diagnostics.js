@@ -12,7 +12,7 @@ function getBinaryPath(extensionPath) {
         return configured.trim();
     }
 
-    const bin = os.platform() === "win32" ? "T-flow.exe" : "tflow";
+    const bin = os.platform() === "win32" ? "tflow.exe" : "tflow";
 
     const candidates = [];
 

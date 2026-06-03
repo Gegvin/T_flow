@@ -161,7 +161,6 @@ function activate(context) {
         }
     );
 
-    // Регистрируем completion provider
     registerCompletionProvider(context);
 
     context.subscriptions.push(
