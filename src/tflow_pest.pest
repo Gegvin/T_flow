@@ -1,0 +1,221 @@
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
+COMMENT = _{ "//" ~ (!"\n" ~ ANY)* }
+
+program = { SOI ~ decl* ~ EOI }
+
+decl = _{
+    const_decl
+  | state_decl
+  | node_decl
+  | grid_decl
+  | step_decl
+  | struct_decl
+  | table_decl
+  | param_decl
+}
+
+struct_decl = {
+    "struct" ~ ident ~ "{" ~ field_decl* ~ "}"
+}
+
+field_decl = {
+    ident ~ ":" ~ type_name ~ ","?
+}
+
+const_decl = {
+    "const" ~ ident ~ "=" ~ expr ~ ";"
+}
+
+table_decl = {
+    "table" ~ ident ~ "#" ~ bound ~ ":" ~ type_name ~ dimension* ~ "=" ~ array ~ ";"
+}
+
+param_decl = {
+    "param" ~ ident ~ "#" ~ bound ~ ":" ~ type_name ~ dimension* ~ "=" ~ array ~ ";"
+}
+
+state_decl = {
+    "state" ~ ident ~ ":" ~ type_name ~ "keep" ~ "(" ~ int ~ ")" ~ "=" ~ expr ~ "@" ~ array ~ "#" ~ bound ~ ";"
+}
+
+node_decl = {
+    "node" ~ ident ~ "(" ~ params? ~ ")" ~ "{" ~ node_stmt* ~ "}"
+}
+
+grid_decl = {
+    "grid" ~ ident ~ "=" ~ ident ~ "[" ~ int_list ~ "]" ~ "(" ~ args? ~ ")" ~ ";"
+}
+
+step_decl = {
+    "step" ~ "{" ~ step_stmt* ~ "}"
+}
+
+node_stmt = _{
+    let_stmt
+  | next_stmt
+}
+
+step_stmt = _{
+    run_stmt
+  | next_stmt
+}
+
+let_stmt = {
+    "let" ~ ident ~ "=" ~ expr ~ ";"
+}
+
+next_stmt = {
+    "next" ~ target ~ assign_op ~ expr ~ ";"
+}
+
+run_stmt = {
+    "run" ~ ident ~ ";"
+}
+
+target = {
+    ident ~ target_suffix*
+}
+
+target_suffix = _{
+    "." ~ ident
+  | "[" ~ expr ~ "]"
+}
+
+assign_op = _{
+    "+="
+  | "-="
+  | "*="
+  | "/="
+  | "="
+}
+
+params = {
+    param ~ ("," ~ param)*
+}
+
+param = {
+    ident ~ ":" ~ type_name
+}
+
+args = {
+    expr ~ ("," ~ expr)*
+}
+
+dimension = {
+    "[" ~ int ~ "]"
+}
+
+int_list = {
+    int ~ ("," ~ int)*
+}
+
+bound = {
+    "wrap"
+  | "clamp"
+  | "fixed" ~ "(" ~ expr ~ ")"
+}
+
+type_name = {
+    ident
+}
+
+expr = {
+    ternary
+}
+
+ternary = {
+    logic_or ~ ("?" ~ expr ~ ":" ~ expr)?
+}
+
+logic_or = {
+    logic_and ~ ("||" ~ logic_and)*
+}
+
+logic_and = {
+    comparison ~ ("&&" ~ comparison)*
+}
+
+comparison = {
+    addition ~ (compare_op ~ addition)*
+}
+
+compare_op = _{
+    "=="
+  | "!="
+  | "<="
+  | ">="
+  | "<"
+  | ">"
+}
+
+addition = {
+    multiplication ~ (("+" | "-") ~ multiplication)*
+}
+
+multiplication = {
+    unary ~ (("*" | "/") ~ unary)*
+}
+
+unary = {
+    ("!" | "-")* ~ postfix
+}
+
+postfix = {
+    primary ~ postfix_part*
+}
+
+postfix_part = _{
+    "#" ~ "[" ~ signed_int_list ~ "]"
+  | "@" ~ history_access
+  | "[" ~ expr ~ "]"
+  | "(" ~ args? ~ ")"
+  | "." ~ ident ~ ("(" ~ args? ~ ")")?
+  | "as" ~ type_name
+}
+
+history_access = {
+    "now"
+  | "prev"
+  | signed_int
+}
+
+primary = _{
+    bool_lit
+  | float
+  | int
+  | ident
+  | array
+  | "(" ~ expr ~ ")"
+}
+
+array = {
+    "[" ~ (expr ~ ("," ~ expr)* ~ ","?)? ~ "]"
+}
+
+signed_int_list = {
+    signed_int ~ ("," ~ signed_int)*
+}
+
+signed_int = {
+    "-"? ~ int
+}
+
+bool_lit = {
+    "true"
+  | "false"
+}
+
+float = @{
+    ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT* ~ (("e" | "E") ~ ("+" | "-")? ~ ASCII_DIGIT+)?
+  | ASCII_DIGIT* ~ "." ~ ASCII_DIGIT+ ~ (("e" | "E") ~ ("+" | "-")? ~ ASCII_DIGIT+)?
+}
+
+int = @{
+    "0x" ~ ASCII_HEX_DIGIT+
+  | "0b" ~ ("0" | "1")+
+  | ASCII_DIGIT+
+}
+
+ident = @{
+    (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")*
+}
