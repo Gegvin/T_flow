@@ -63,7 +63,7 @@ fn main() -> ExitCode {
     if args.pest {
         return run_pest(args.input);
     }
-    
+
     match args.input {
         Some(path) => match run_lexer(path) {
             Ok(()) => ExitCode::SUCCESS,
