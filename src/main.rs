@@ -3,7 +3,6 @@ use std::fs;
 use std::io::{self, Read};
 use std::path::PathBuf;
 use std::process::ExitCode;
-use std::time::Instant;
 
 mod ast;
 mod ast_parser;
