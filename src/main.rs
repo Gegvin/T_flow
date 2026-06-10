@@ -4,12 +4,17 @@ use std::io::{self, Read};
 use std::path::PathBuf;
 use std::process::ExitCode;
 
+mod ast;
+mod ast_parser;
+mod interpreter;
 mod lexer_error;
 mod lexer_runner;
 mod parser;
 mod position;
 mod token;
 
+use crate::ast_parser::AstParser;
+use crate::interpreter::Interpreter;
 use crate::lexer_runner::{format_tokens, lex_source};
 use crate::parser::Parser as TFlowParser;
 use crate::token::Token;
@@ -20,6 +25,15 @@ struct Args {
 
     #[arg(long)]
     check: bool,
+
+    #[arg(long)]
+    ast: bool,
+
+    #[arg(long)]
+    run: bool,
+
+    #[arg(long, default_value_t = 1)]
+    steps: usize,
 }
 
 fn main() -> ExitCode {
@@ -29,8 +43,15 @@ fn main() -> ExitCode {
         return run_check();
     }
 
+    if args.ast {
+        return run_ast(args.input);
+    }
+
+    if args.run {
+        return run_interpreter(args.input, args.steps);
+    }
     match args.input {
-        Some(path) => match run(path) {
+        Some(path) => match run_lexer(path) {
             Ok(()) => ExitCode::SUCCESS,
             Err(message) => {
                 eprintln!("{message}");
@@ -38,7 +59,7 @@ fn main() -> ExitCode {
             }
         },
         None => {
-            eprintln!("Provide input file or use --check");
+            eprintln!("Provide input file, or use --check, --ast, --run");
             ExitCode::FAILURE
         }
     }
@@ -62,19 +83,19 @@ fn run_check() -> ExitCode {
             println!("{json}");
             return ExitCode::SUCCESS;
         }
-        Ok(t) => t,
+        Ok(tokens) => tokens,
     };
 
     let errors = TFlowParser::new(&tokens).parse();
 
     let json_items: Vec<String> = errors
         .iter()
-        .map(|e| {
+        .map(|error| {
             format!(
                 r#"{{"message":{},"line":{},"column":{}}}"#,
-                serde_json::to_string(&e.message).unwrap(),
-                e.line,
-                e.column,
+                serde_json::to_string(&error.message).unwrap(),
+                error.line,
+                error.column,
             )
         })
         .collect();
@@ -82,8 +103,105 @@ fn run_check() -> ExitCode {
     println!("[{}]", json_items.join(","));
     ExitCode::SUCCESS
 }
+fn run_ast(input: Option<PathBuf>) -> ExitCode {
+    let input_path = match input {
+        Some(path) => path,
+        None => {
+            eprintln!("Provide input file for --ast");
+            return ExitCode::FAILURE;
+        }
+    };
 
-fn run(input_path: PathBuf) -> Result<(), String> {
+    let source = match fs::read_to_string(&input_path) {
+        Ok(source) => source,
+        Err(error) => {
+            eprintln!("Cannot read input file: {error}");
+            return ExitCode::FAILURE;
+        }
+    };
+
+    let tokens = match lex_source::<Token>(&source) {
+        Ok(tokens) => tokens,
+        Err(error) => {
+            eprintln!("{}", error.message);
+            return ExitCode::FAILURE;
+        }
+    };
+
+    match AstParser::new(&tokens).parse_program() {
+        Ok(program) => {
+            println!("{:#?}", program);
+            ExitCode::SUCCESS
+        }
+        Err(errors) => {
+            for error in errors {
+                eprintln!("{}:{}: {}", error.line, error.column, error.message);
+            }
+
+            ExitCode::FAILURE
+        }
+    }
+}
+
+fn run_interpreter(input: Option<PathBuf>, steps: usize) -> ExitCode {
+    let input_path = match input {
+        Some(path) => path,
+        None => {
+            eprintln!("Provide input file for --run");
+            return ExitCode::FAILURE;
+        }
+    };
+
+    let source = match fs::read_to_string(&input_path) {
+        Ok(source) => source,
+        Err(error) => {
+            eprintln!("Cannot read input file: {error}");
+            return ExitCode::FAILURE;
+        }
+    };
+
+    let tokens = match lex_source::<Token>(&source) {
+        Ok(tokens) => tokens,
+        Err(error) => {
+            eprintln!("{}", error.message);
+            return ExitCode::FAILURE;
+        }
+    };
+
+    let program = match AstParser::new(&tokens).parse_program() {
+        Ok(program) => program,
+        Err(errors) => {
+            for error in errors {
+                eprintln!("{}:{}: {}", error.line, error.column, error.message);
+            }
+
+            return ExitCode::FAILURE;
+        }
+    };
+
+    let mut interpreter = match Interpreter::new(program) {
+        Ok(interpreter) => interpreter,
+        Err(error) => {
+            eprintln!("{}", error.message);
+            return ExitCode::FAILURE;
+        }
+    };
+
+    match interpreter.run_steps(steps) {
+        Ok(output) => {
+            print!("{output}");
+            ExitCode::SUCCESS
+        }
+        Err(error) => {
+            eprintln!("{}", error.message);
+            ExitCode::FAILURE
+        }
+    }
+}
+
+// ── старый режим лексера ────────────────────────────────────────────────
+
+fn run_lexer(input_path: PathBuf) -> Result<(), String> {
     let source = fs::read_to_string(&input_path)
         .map_err(|error| format!("Cannot read input file: {error}"))?;
     let tokens = lex_source::<Token>(&source).map_err(|error| error.message)?;
