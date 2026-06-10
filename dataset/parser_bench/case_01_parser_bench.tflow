@@ -1,0 +1,22 @@
+state x: Int keep(1) = 0 @ [1, 2, 0, 1, 2, 0] #clamp;
+state y: Int keep(1) = 0 @ [0, 0, 0, 0, 0, 0] #clamp;
+
+node update() {
+    let left = x#[-1];
+    let center = x#[0];
+    let right = x#[1];
+    let sum = left + center + right;
+    let doubled = sum * 2;
+    let shifted = doubled - center;
+    let flag = shifted > 1 ? 1 : 0;
+    let mixed = flag + right;
+    next y = mixed;
+    next x = sum;
+}
+
+grid main = update[6]();
+
+step {
+    run main;
+    run main;
+}

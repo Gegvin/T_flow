@@ -10,6 +10,7 @@ mod interpreter;
 mod lexer_error;
 mod lexer_runner;
 mod parser;
+mod pest_parser;
 mod position;
 mod token;
 
@@ -17,6 +18,7 @@ use crate::ast_parser::AstParser;
 use crate::interpreter::Interpreter;
 use crate::lexer_runner::{format_tokens, lex_source};
 use crate::parser::Parser as TFlowParser;
+use crate::pest_parser::parse_pest;
 use crate::token::Token;
 
 #[derive(Parser)]
@@ -27,10 +29,16 @@ struct Args {
     check: bool,
 
     #[arg(long)]
+    bench_parsers: Option<PathBuf>,
+
+    #[arg(long)]
     ast: bool,
 
     #[arg(long)]
     run: bool,
+
+    #[arg(long)]
+    pest: bool,
 
     #[arg(long, default_value_t = 1)]
     steps: usize,
@@ -50,6 +58,11 @@ fn main() -> ExitCode {
     if args.run {
         return run_interpreter(args.input, args.steps);
     }
+
+    if args.pest {
+        return run_pest(args.input);
+    }
+
     match args.input {
         Some(path) => match run_lexer(path) {
             Ok(()) => ExitCode::SUCCESS,
@@ -59,7 +72,7 @@ fn main() -> ExitCode {
             }
         },
         None => {
-            eprintln!("Provide input file, or use --check, --ast, --run");
+            eprintln!("Provide input file, or use --check, --ast, --run, --pest");
             ExitCode::FAILURE
         }
     }
@@ -199,7 +212,34 @@ fn run_interpreter(input: Option<PathBuf>, steps: usize) -> ExitCode {
     }
 }
 
-// ── старый режим лексера ────────────────────────────────────────────────
+fn run_pest(input: Option<PathBuf>) -> ExitCode {
+    let input_path = match input {
+        Some(path) => path,
+        None => {
+            eprintln!("Provide input file for --pest");
+            return ExitCode::FAILURE;
+        }
+    };
+
+    let source = match fs::read_to_string(&input_path) {
+        Ok(source) => source,
+        Err(error) => {
+            eprintln!("Cannot read input file: {error}");
+            return ExitCode::FAILURE;
+        }
+    };
+
+    match parse_pest(&source) {
+        Ok(()) => {
+            println!("OK");
+            ExitCode::SUCCESS
+        }
+        Err(error) => {
+            eprintln!("{error}");
+            ExitCode::FAILURE
+        }
+    }
+}
 
 fn run_lexer(input_path: PathBuf) -> Result<(), String> {
     let source = fs::read_to_string(&input_path)
