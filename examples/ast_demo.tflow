@@ -1,0 +1,12 @@
+state x: Int keep(1) = 0 @ [1, 2, 3] #wrap;
+
+node update() {
+    let y = x#[0] + 1;
+    next x = y;
+}
+
+grid main = update[3]();
+
+step {
+    run main;
+}

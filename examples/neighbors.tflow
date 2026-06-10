@@ -1,0 +1,15 @@
+state x: Int keep(1) = 0 @ [0, 1, 0, 0, 0] #wrap;
+
+node update() {
+    let left = x#[-1];
+    let center = x#[0];
+    let right = x#[1];
+
+    next x = left + center + right;
+}
+
+grid main = update[5]();
+
+step {
+    run main;
+}
